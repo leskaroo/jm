@@ -426,78 +426,6 @@
     margin:0;
     line-height:1.7;
   }
-  .tf-form{
-    margin-top:18px;
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-  .tf-form input[type="text"]{
-    flex:1 1 160px;
-    padding:10px 12px;
-    border:1px solid var(--line);
-    border-radius:4px;
-    font-family:'Noto Sans KR', sans-serif;
-    font-size:14px;
-    background:var(--cream);
-    color:var(--ink);
-  }
-  .tf-form input[type="text"]:focus{
-    outline:none;
-    border-color:var(--gold);
-  }
-  .tf-form button{
-    padding:10px 18px;
-    border:none;
-    border-radius:4px;
-    background:var(--pine);
-    color:#F6F1E2;
-    font-size:14px;
-    font-family:'Noto Sans KR', sans-serif;
-    font-weight:500;
-    cursor:pointer;
-    transition:background .2s;
-  }
-  .tf-form button:hover{ background:#2a4030; }
-  .tf-form button:disabled{ opacity:.6; cursor:default; }
-  .tf-status{
-    font-size:12.5px;
-    color:var(--soil);
-    margin-top:8px;
-    min-height:16px;
-  }
-  .tf-list-wrap{
-    margin-top:16px;
-    padding-top:16px;
-    border-top:1px dashed var(--line);
-  }
-  .tf-list-title{
-    font-size:12px;
-    letter-spacing:0.06em;
-    color:var(--soil);
-    margin-bottom:10px;
-  }
-  .tf-list{
-    list-style:none;
-    margin:0;
-    padding:0;
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-  }
-  .tf-list li{
-    background:var(--cream-deep);
-    color:var(--pine);
-    font-size:13.5px;
-    padding:6px 14px;
-    border-radius:20px;
-  }
-  .tf-list-empty{
-    font-size:13.5px;
-    color:#8a8a7a;
-    background:none !important;
-    padding:0 !important;
-  }
 
   /* ---------- FOOTER ---------- */
   footer{
@@ -641,15 +569,6 @@
   <div class="note-card">
     <div class="note-title">T/F 팀 상시 모집</div>
     <p>전민 텃밭으로의 초대, 함께 꾸려갈 분을 계속 찾고 있습니다. 관심 있으신 분은 편하게 말씀해 주세요.</p>
-    <form class="tf-form" id="tfForm">
-      <input type="text" id="tfName" placeholder="이름을 입력해주세요" maxlength="20" autocomplete="off" required>
-      <button type="submit">신청하기</button>
-    </form>
-    <div class="tf-status" id="tfStatus"></div>
-    <div class="tf-list-wrap">
-      <div class="tf-list-title">현재 신청자</div>
-      <ul class="tf-list" id="tfList"><li class="tf-list-empty">불러오는 중...</li></ul>
-    </div>
   </div>
 </section>
 
@@ -658,82 +577,5 @@
   <div class="foot-sub">좋은 기분과 가벼운 발걸음만 가지고 오세요</div>
 </footer>
 
-<script>
-(function(){
-  var FORM_ACTION = "https://docs.google.com/forms/d/e/1FAIpQLSfS2CZMpkeOm7fANtKMB-tZTmdiP3EX5BAGSbLAhlEYsn-NVw/formResponse";
-  var ENTRY_ID = "entry.2000837902";
-  var CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTg7KghWO0WmBGGh5MuW0_c8ZdBLuIWQdjHxsP9m9qp1BV5EqGKW9QTfiPC5aPdO1Z2awYQgAFjcv3J/pub?gid=1563645421&single=true&output=csv";
-
-  var form = document.getElementById('tfForm');
-  var input = document.getElementById('tfName');
-  var status = document.getElementById('tfStatus');
-  var list = document.getElementById('tfList');
-
-  function parseCSV(text){
-    var lines = text.trim().split(/\r?\n/);
-    if(lines.length <= 1) return [];
-    return lines.slice(1).map(function(line){
-      var cols = line.match(/(".*?"|[^,]+)(?=,|$)/g) || [];
-      var name = cols[1] || '';
-      name = name.replace(/^"|"$/g, '').trim();
-      return name;
-    }).filter(Boolean);
-  }
-
-  function renderList(names){
-    list.innerHTML = '';
-    if(names.length === 0){
-      list.innerHTML = '<li class="tf-list-empty">아직 신청자가 없습니다</li>';
-      return;
-    }
-    names.forEach(function(name){
-      var li = document.createElement('li');
-      li.textContent = name;
-      list.appendChild(li);
-    });
-  }
-
-  function loadList(){
-    fetch(CSV_URL + '&_=' + Date.now())
-      .then(function(res){ return res.text(); })
-      .then(function(text){ renderList(parseCSV(text)); })
-      .catch(function(){ list.innerHTML = '<li class="tf-list-empty">명단을 불러오지 못했습니다</li>'; });
-  }
-
-  form.addEventListener('submit', function(e){
-    e.preventDefault();
-    var name = input.value.trim();
-    if(!name) return;
-    var btn = form.querySelector('button');
-    btn.disabled = true;
-    status.textContent = '신청 중입니다...';
-
-    var body = new URLSearchParams();
-    body.append(ENTRY_ID, name);
-
-    fetch(FORM_ACTION, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: body.toString()
-    }).then(function(){
-      status.textContent = name + '님, 신청해주셔서 감사합니다!';
-      input.value = '';
-      var current = Array.prototype.slice.call(list.querySelectorAll('li'))
-        .filter(function(li){ return !li.classList.contains('tf-list-empty'); })
-        .map(function(li){ return li.textContent; });
-      current.push(name);
-      renderList(current);
-      setTimeout(loadList, 4000);
-    }).catch(function(){
-      status.textContent = '신청 중 문제가 발생했습니다. 다시 시도해주세요.';
-    }).finally(function(){
-      btn.disabled = false;
-    });
-  });
-
-  loadList();
-})();
-</script>
 </body>
 </html>
